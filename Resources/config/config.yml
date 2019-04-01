@@ -1,0 +1,22 @@
+parameters:
+    shared_entity_namespace: "TontonYoyo\\ApiObjectBundle\\Samples"
+    shared_entity_directory: "src/YMR/ApiObjectBundle/Samples/"
+
+api_object:
+    api_url: ''
+    api_port: ''
+    api_name: ''
+    auth_content: ~
+    content_type: 'application/json'
+    configuration: 'annotation'
+    entities: ~
+#        City:
+#            depth: 2
+#            entity_class: 'App\Entity\City'
+#            api_table_name: 'cities'
+#            use_yaml_schema: false
+#            schema: 'City.yml'
+
+
+
+

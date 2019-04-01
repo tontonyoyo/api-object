@@ -1,0 +1,57 @@
+
+
+services:
+
+    Http\Discovery\HttpClientDiscovery:
+
+    Http\Discovery\Psr17FactoryDiscovery:
+
+    TontonYoyo\ApiObjectBundle\Bridge\Bridge:
+        public: false
+        autowire: true
+        class: TontonYoyo\ApiObjectBundle\Bridge\Bridge
+        arguments:
+            - '@Http\Discovery\HttpClientDiscovery'
+            - '@Http\Discovery\Psr17FactoryDiscovery'
+
+    TontonYoyo\ApiObjectBundle\Annotation\ApiObjectDiscovery:
+        public: true
+        autowire: true
+        arguments:
+            - "@parameter_bag"
+            - "@annotation_reader"
+
+    TontonYoyo\ApiObjectBundle\Annotation\ApiObjectFieldDiscovery:
+        autowire: true
+        arguments:
+            - "@annotation_reader"
+
+    TontonYoyo\ApiObjectBundle\Factory\ApiObjectFactory:
+        autowire: true
+        arguments:
+            - '@TontonYoyo\ApiObjectBundle\Annotation\ApiObjectFieldDiscovery'
+
+
+    TontonYoyo\ApiObjectBundle\Service\ApiObjectManager:
+        public: true
+        autowire: true
+        arguments:
+            - '@TontonYoyo\ApiObjectBundle\Bridge\Bridge'
+            - '@TontonYoyo\ApiObjectBundle\Annotation\ApiObjectDiscovery'
+            - '@TontonYoyo\ApiObjectBundle\Factory\ApiObjectFactory'
+
+    TontonYoyo\ApiObjectBundle\Controller\ApiObjectController:
+            autowire: true
+            arguments:
+                - '@TontonYoyo\ApiObjectBundle\Service\ApiObjectManager'
+
+    TontonYoyo\ApiObjectBundle\ParamConverter\ApiObjectParamConverter:
+            class: TontonYoyo\ApiObjectBundle\ParamConverter\ApiObjectParamConverter
+            tags:
+                - { name: request.param_converter, converter: TontonYoyo\ApiObjectBundle\Request\ParamConverter\SharedEntitiesParamConverter }
+            arguments:
+                - '@TontonYoyo\ApiObjectBundle\Service\ApiObjectManager'
+                - '@TontonYoyo\ApiObjectBundle\Annotation\ApiObjectDiscovery'
+
+
+
