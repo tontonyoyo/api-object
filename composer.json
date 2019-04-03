@@ -13,10 +13,10 @@
     "require": {
         "php": ">=7.1.0",
         "doctrine/annotations": "^1.6",
-        "guzzlehttp/psr7": "^1.5@dev",
-        "php-http/curl-client": "^2.0@dev",
-        "php-http/httplug-bundle": "^1.0@dev",
-        "zendframework/zend-diactoros": "^2.1@dev"
+        "doctrine/collections": "^1.6",
+        "php-http/curl-client": "^2.0",
+        "php-http/httplug-bundle": "^1.0",
+        "zendframework/zend-diactoros": "^2.1"
     },
     "autoload": {
         "psr-4": {

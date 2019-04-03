@@ -13,12 +13,12 @@ abstract class AbstractApiObject implements ApiObject
      *     type_out="integer"
      * )
      */
-    private $id;
+    protected $id;
 
     /**
      * @AOMField()
      */
-    private $label;
+    protected $label;
 
     /**
      * @return mixed

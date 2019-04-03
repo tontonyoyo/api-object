@@ -11,7 +11,7 @@ use TontonYoyo\ApiObjectBundle\ApiObject\ApiObject;
 interface BridgeInterface
 {
 
-    public function __construct(HttpClientDiscovery $clientDiscovery,Psr17FactoryDiscovery $msgFactoryDicovery);
+    public function __construct(HttpClientDiscovery $clientDiscovery,Psr17FactoryDiscovery $psr17FactoryDiscovery);
 
     /**
     * @author YMR-ImplementsDumbFactory
@@ -188,17 +188,7 @@ interface BridgeInterface
      */
     public function urlCollectionFormalizer();
 
-    /**
-     * Build api url (example http://localhost:9000/api
-     */
-    public function buildUrl();
 
-
-    /**
-     * Create an object request with previously set parameters
-     * @return RequestInterface
-     */
-    public function makeRequest();
 
     /**
      * send the previously built request if request match the PSR-7 requestInterface

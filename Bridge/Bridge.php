@@ -6,11 +6,14 @@ namespace TontonYoyo\ApiObjectBundle\Bridge;
 use const FILTER_VALIDATE_URL;
 use Http\Discovery\HttpClientDiscovery;
 use Http\Discovery\Psr17FactoryDiscovery;
+use Psr\Http\Message\StreamFactoryInterface;
 use TontonYoyo\ApiObjectBundle\ApiObject\ApiObject;
 use function is_null;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use TontonYoyo\ApiObjectBundle\Operation\OperationInterface;
+use Zend\Diactoros\Request;
+use Zend\Diactoros\Uri;
 
 class Bridge implements BridgeInterface
 {
@@ -25,7 +28,7 @@ class Bridge implements BridgeInterface
      */
     private $client;
 
-    private $msgFactoryDicovery;
+    private $requestFactory;
 
     private $apiUrl;
 
@@ -42,7 +45,10 @@ class Bridge implements BridgeInterface
      */
     private $final_url;
 
-    private $header = [];
+    private $header = [
+        'Content-Type'=>'application/json',
+        'authorization'=>'bearer',
+    ];
 
     private $method;
 
@@ -57,16 +63,23 @@ class Bridge implements BridgeInterface
     /**
      * properties conaining response elements
      */
+
+    /**
+     * @var RequestInterface
+     */
     private $request;
 
+    /**
+     * @var ResponseInterface
+     */
     private $response;
 
     private $response_content;
 
-    public function __construct(HttpClientDiscovery $clientDiscovery,Psr17FactoryDiscovery $msgFactoryDicovery)
+    public function __construct(HttpClientDiscovery $clientDiscovery,Psr17FactoryDiscovery $psr17FactoryDiscovery)
     {
         $this->client = $clientDiscovery->find();
-        $this->msgFactoryDicovery = $msgFactoryDicovery;
+        $this->requestFactory = $psr17FactoryDiscovery->findRequestFactory();
     }
 
     /**
@@ -89,7 +102,6 @@ class Bridge implements BridgeInterface
      */
     public function setHeader(array $header) //OK
     {
-        $this->header = [];
         foreach ($header as $item => $value) {
             $this->header[$item] = $value;
         }
@@ -193,7 +205,7 @@ class Bridge implements BridgeInterface
         $this->setMethod('POST');
         $this->body = $this->postData;
         $this->urlCollectionFormalizer();
-        $this->request = $this->makeRequest();
+        $this->makeRequest();
         $this->sendRequest();
         return $this->GetResponse();
     }
@@ -212,7 +224,7 @@ class Bridge implements BridgeInterface
         $this->setMethod('PUT');
         $this->body = $this->postData;
         $this->urlEntityFormalizer($id);
-        $this->request = $this->makeRequest();
+        $this->makeRequest();
         $this->sendRequest();
         return $this->getResponse();
     }
@@ -228,7 +240,7 @@ class Bridge implements BridgeInterface
     {
         $this->setMethod('DELETE');
         $this->urlEntityFormalizer($entity->getId());
-        $this->request = $this->makeRequest();
+        $this->makeRequest();
         $this->sendRequest();
         return $this->getResponse();
     }
@@ -244,7 +256,7 @@ class Bridge implements BridgeInterface
     {
         $this->setMethod('GET');
         $this->urlEntityFormalizer($id);
-        $this->request = $this->makeRequest();
+        $this->makeRequest();
         $this->sendRequest();
         return $this->getResponse();
     }
@@ -266,7 +278,7 @@ class Bridge implements BridgeInterface
             $this->addGetParameters($parameters);
         }
 
-        $this->request = $this->makeRequest();
+        $this->makeRequest();
         $this->sendRequest();
 
         return $this->getResponse();
@@ -284,7 +296,7 @@ class Bridge implements BridgeInterface
             $this->setMethod('GET');
         }
         $this->urlCollectionFormalizer();
-        $this->request = $this->makeRequest();
+        $this->makeRequest();
         $this->sendRequest();
         return $this->getDecodedResponse();
     }
@@ -321,7 +333,7 @@ class Bridge implements BridgeInterface
             $this->addGetParameters($params);
         }
 
-        $this->request = $this->makeRequest();
+        $this->makeRequest();
         //dump($this->request);
         if (!$this->request instanceOf RequestInterface) {
             // TODO : exception
@@ -401,7 +413,7 @@ class Bridge implements BridgeInterface
     }
 
     /**
-     * Build api url (example http://localhost:9000/api
+     * Build api url (example http://localhost:9000/api)
      */
     public function buildUrl()
     {
@@ -416,31 +428,27 @@ class Bridge implements BridgeInterface
         }
     }
 
-    /**
-     * Create an object request with previously set parameters
-     * @return RequestInterface
-     */
-    public function makeRequest()
+    private function makeRequest()
     {
-        return $this->psr17FactoryDiscovery->findRequestFactory()->createRequest(
-            $this->method,
-            $this->final_url,
-            $this->header,
-            $this->body,
-            $this->protocolVersion
-        );
+        $this->request = $this->requestFactory->createRequest($this->method,$this->final_url);
+        foreach($this->header as $headerName => $headerValue){
+            $this->request = $this->request->withHeader($headerName,$headerValue);
+        }
+
+        $this->request->getBody()->write($this->body);
     }
 
+
+
     /**
-     * send the previously built request if request match the PSR-7 requestInterface
-     * @throws \Http\Client\Exception
+     * @throws \Psr\Http\Client\ClientExceptionInterface
      */
     public function sendRequest()
     {
         if (!$this->request instanceof RequestInterface) {
             //TODO throw exception
             dump($this->request);
-            die;
+
         }
         $this->response = $this->client->sendRequest($this->request);
         if($this->response instanceOf ResponseInterface){
@@ -465,6 +473,15 @@ class Bridge implements BridgeInterface
     public function getResponse()
     {
         return $this->response_content;
+    }
+
+    /**
+     * return response content deflated
+     * @return mixed
+     */
+    public function getRequest()
+    {
+        return $this->request->getBody()->getContents();
     }
 
     /**

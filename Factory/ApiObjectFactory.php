@@ -431,7 +431,7 @@ class ApiObjectFactory implements ApiObjectFactoryInterface
             && file_exists(__DIR__ . "/../Resources/schemas/" .$this->objects[$entityName]['schema'])){
             $schemaConfig = $this->getYml($this->objects[$entityName]['schema']);
             $this->schema = $schemaConfiguration->getSchemaFromYaml($schemaConfig);
-        }elseif(false !== $this->propertyDiscovery->getSharedEntityProperties($this->objects[$entityName]['entity_class'])){
+        }elseif(false !== $this->propertyDiscovery->getApiObjectProperties($this->objects[$entityName]['entity_class'])){
             $this->schema = $schemaConfiguration->getSchemaFromAnnot($this->propertyDiscovery->getPropertiesAnnotations());
         }else{
             $this->schema = null;
